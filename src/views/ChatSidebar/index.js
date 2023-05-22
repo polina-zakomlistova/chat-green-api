@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import Styles from './style.module.css';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
 //components
 import { List, ListItem, ListItemText } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
 import IconButton from '@material-ui/core/IconButton';
 import SearchIcon from '@material-ui/icons/Search';
+import PersonIcon from '@material-ui/icons/Person';
 //context
 import { observer } from 'mobx-react-lite';
 import useStore from '../../hooks/useStore';
 
 const useStyles = makeStyles((theme) => ({
+    wrapper: {
+        width: '30%',
+    },
     root: {
         '& .MuiTextField-root': {
             margin: theme.spacing(1),
-            width: '25ch',
+            width: '20ch',
         },
     },
     input: {
@@ -26,12 +31,36 @@ const useStyles = makeStyles((theme) => ({
     iconButton: {
         padding: 10,
     },
+    searchWrapper: {
+        backgroundColor: '#eae6df',
+    },
+
+    colorField: {
+        backgroundColor: '#eae6df',
+    },
+    field: {
+        border: '1px solid #eae6df',
+    },
+    person: {
+        display: 'flex',
+        alignItems: 'center',
+        paddingLeft: '10px',
+        backgroundColor: '#eae6df',
+        height: '50px',
+    },
 }));
+
+const CustomPaper = withStyles((theme) => ({
+    root: {
+        backgroundColor: '#eae6df ',
+        margin: '5px 7px',
+    },
+}))(Paper);
 
 export default observer(Recipients);
 
 function Recipients() {
-    const [recipientsStore] = useStore('recipients');
+    const [recipientsStore, chatsStore] = useStore('recipients', 'chats');
     const { recipients, currentRecipient, setСurrentRecipient, addRecipient } =
         recipientsStore;
     const classes = useStyles();
@@ -58,28 +87,29 @@ function Recipients() {
         const formattedPhoneNumber = validateAndFormatPhoneNumber(searchPhone);
 
         if (formattedPhoneNumber) {
+            setSearchPhone('');
             addRecipient(formattedPhoneNumber);
-            setCurrentRecipient(formattedPhoneNumber);
+            setСurrentRecipient(formattedPhoneNumber);
         } else {
             // Некорректный номер телефона
+            setSearchPhone('');
         }
     };
 
     return (
-        <div className={Styles}>
-            {' '}
-            <h1>Recipients</h1>
-            <Paper
+        <div className={classes.wrapper}>
+            <h2 className="visually-hidden">Recipients</h2>
+            <div className={classes.person}>
+                <Link to="/">
+                    <PersonIcon fontSize="large" />
+                </Link>
+            </div>
+
+            <CustomPaper
                 component="form"
                 className={classes.root}
                 onSubmit={handleSearchSubmit}
             >
-                <InputBase
-                    className={classes.input}
-                    placeholder="Search phone"
-                    inputProps={{ 'aria-label': 'search google maps' }}
-                    onChange={handleSearchChange}
-                />
                 <IconButton
                     type="submit"
                     className={classes.iconButton}
@@ -87,12 +117,26 @@ function Recipients() {
                 >
                     <SearchIcon />
                 </IconButton>
-            </Paper>
-            <List className={classes.root}>
+                <InputBase
+                    className={classes.input}
+                    placeholder="Поиск или новый чат"
+                    onChange={handleSearchChange}
+                    value={searchPhone}
+                />
+            </CustomPaper>
+            <List>
                 {recipients.map((item) => (
-                    <ListItem key={item.phone} button>
+                    <ListItem
+                        key={item.id}
+                        className={
+                            currentRecipient && item.id == currentRecipient.id
+                                ? `${classes.field} ${classes.colorField}`
+                                : classes.field
+                        }
+                        button
+                    >
                         <ListItemText
-                            primary={item.phone}
+                            primary={item.name || item.phone}
                             onClick={() => setСurrentRecipient(item.phone)}
                         />
                     </ListItem>

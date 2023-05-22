@@ -2,15 +2,16 @@ import { makeAutoObservable } from 'mobx';
 
 export default class Recipients {
     recipients = [
-        {
-            phone: '9876543210',
-        },
-        {
-            phone: '1111111111',
-        },
-        {
-            phone: '2222222222',
-        },
+        // {
+        //     name: '',
+        //     phone: '79138024394',
+        //     id: '79138024394@c.us',
+        // },
+        // {
+        //     name: '',
+        //     phone: '79528952227',
+        //     id: '79528952227@c.us',
+        // },
     ];
 
     _currentRecipient = null;
@@ -19,22 +20,25 @@ export default class Recipients {
         return (phone) => this.recipients.some((item) => item.phone === phone);
     }
 
-    addRecipient = (phone) => {
-        // Проверяем, что получатель с таким номером телефона еще не существует в списке
+    get currentRecipient() {
+        return this._currentRecipient;
+    }
 
-        if (this.inRecipients(phone)) {
-            return; // Получатель уже существует, не добавляем дубликат
+    addRecipient = (phoneOrId, name = phoneOrId) => {
+        const phone = phoneOrId.replace(/[^\d]/g, '');
+        if (!this.inRecipients(phone)) {
+            const newRecipient = {
+                phone: phone,
+                id: `${phone}@c.us`,
+                name: name,
+            };
+
+            this.recipients.push(newRecipient);
         }
-
-        const newRecipient = {
-            phone,
-        };
-
-        this.recipients.push(newRecipient);
     };
 
-    setСurrentRecipient = (recipient) => {
-        this._currentRecipient = recipient;
+    setСurrentRecipient = (phone) => {
+        this._currentRecipient = this.recipients.find((r) => r.phone === phone);
     };
 
     get currentRecipient() {
@@ -45,6 +49,9 @@ export default class Recipients {
         return this._currentRecipient !== null;
     }
 
+    findRecipient(id) {
+        return this.recipients.find((r) => r.id === id);
+    }
     constructor(rootStore) {
         makeAutoObservable(this);
         this.rootStore = rootStore;

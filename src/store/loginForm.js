@@ -10,22 +10,22 @@ export default class LoginForm {
             pattern: /.*/,
         },
         {
-            name: 'apiTokenInstance)',
-            label: 'apiTokenInstance)',
+            name: 'apiTokenInstance',
+            label: 'apiTokenInstance',
             value: '',
             valid: false,
             pattern: /.*/,
         },
     ];
 
-    _phone = '1234567890';
+    _id = '447487676471@c.us';
 
-    setPhone = (phone) => {
-        this._phone = phone;
+    setId = (id) => {
+        this._id = id;
     };
 
-    get phone() {
-        return this._phone;
+    get id() {
+        return this._id;
     }
 
     get data() {

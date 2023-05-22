@@ -13,19 +13,24 @@ export default observer(ChatGroup);
 const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
-        justifyContent: 'space-between',
+        backgroundColor: '#ffffff',
+        width: '1000px',
+        height: '90vh',
+        '@media(max-width: 1540px)': {
+            width: '100vw',
+            height: '100vh',
+            margin: 0,
+        },
     },
 }));
 
 function ChatGroup() {
     const classes = useStyles();
     return (
-        <>
-            <h1>Chats group</h1>
-            <div className={classes.root}>
-                <ChatSidebar />
-                <ChatWindow />
-            </div>
-        </>
+        <div className={classes.root}>
+            <h2 className="visually-hidden">Chats group</h2>
+            <ChatSidebar />
+            <ChatWindow />
+        </div>
     );
 }

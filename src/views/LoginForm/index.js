@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import Styles from './style.module.css';
+import styles from './style.module.css';
 //components
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 
@@ -18,8 +18,63 @@ const useStyles = makeStyles((theme) => ({
         '& > *': {
             margin: theme.spacing(1),
         },
+        backgroundColor: '#ffffff',
+        minWidth: '30vw',
+        maxWidth: '70vw',
+        padding: '20px',
+        marginTop: '50px',
+        textAlign: 'center',
+    },
+    field: {
+        marginBottom: '20px',
+        maxWidth: '500px',
+        margin: theme.spacing(1),
+    },
+    fieldsWrapper: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    form: {
+        margin: '20px',
     },
 }));
+const CssTextField = withStyles({
+    root: {
+        '& label.Mui-focused': {
+            color: 'green',
+        },
+        '& .MuiInput-underline:after': {
+            borderBottomColor: '#000000',
+        },
+        '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+                borderColor: '#000000',
+            },
+            '&:hover fieldset': {
+                borderColor: '#00a884',
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: '#00a884',
+            },
+        },
+    },
+})(TextField);
+
+const ColorButton = withStyles((theme) => ({
+    root: {
+        color: '#000000',
+        backgroundColor: '#abaaaa',
+        padding: '6px 12px',
+        '&:hover': {
+            backgroundColor: '#00a884',
+        },
+        '&:focus': {
+            boxShadow: '0 0 0 0.2rem rgba(0,123,255,.5)',
+        },
+    },
+}))(Button);
 
 function LoginForm() {
     const navigate = useNavigate();
@@ -32,28 +87,33 @@ function LoginForm() {
     const classes = useStyles();
 
     return (
-        <div className={Styles}>
-            <h1>Login form</h1>
-
-            <form className={classes.root}>
-                <div>
+        <div className={classes.root}>
+            <h2 className="visually-hidden">Login form</h2>
+            <form className={classes.form}>
+                <div className={classes.fieldsWrapper}>
                     {fields.map((field) => (
-                        <TextField
+                        <CssTextField
+                            className={classes.field}
                             id={field.name}
                             label={field.label}
                             name={field.name}
                             pattern={field.pattern}
                             value={field.value}
-                            variant="outlined"
+                            variant="filled"
                             onChange={(e) => {
                                 fieldUpdate(field.name, e.target.value);
                             }}
                         />
                     ))}
                 </div>
-                <Button type="submit" onClick={sendForm} disabled={!formValid}>
+                <ColorButton
+                    variant="contained"
+                    type="submit"
+                    onClick={sendForm}
+                    disabled={!formValid}
+                >
                     Sign in
-                </Button>
+                </ColorButton>
             </form>
         </div>
     );
