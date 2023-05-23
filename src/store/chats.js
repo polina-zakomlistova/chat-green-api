@@ -1,54 +1,21 @@
 import { makeAutoObservable } from 'mobx';
-
+//{
+//     id: '7777777777@c.us',
+//     participants: ['7777777777@c.us', '9999999999@c.us'],
+//     messages: [
+//         {
+//             id: 1,
+//             author: '7777777777@c.us',
+//             text: 'Привет, как дела?',
+//               type: 'incoming' || 'outgoing';
+//         },
+//     ],
+// },
 export default class Chat {
-    chats = [
-        // {
-        //     id: '79138024394@c.us',
-        //     participants: ['447487676471@c.us', '79138024394@c.us'],
-        //     messages: [
-        //         {
-        //             id: 1,
-        //             author: '447487676471@c.us',
-        //             text: 'Привет, как дела?',
-        //         },
-        //         {
-        //             id: 2,
-        //             author: '79138024394@c.us',
-        //             text: 'Привет, все отлично! А у тебя?',
-        //         },
-        //         {
-        //             id: 3,
-        //             author: '447487676471@c.us',
-        //             text: 'У меня тоже все хорошо, спасибо!',
-        //         },
-        //     ],
-        // },
-        // {
-        //     id: '79528952227@c.us',
-        //     participants: ['447487676471@c.us', '79528952227@c.us'],
-        //     messages: [
-        //         {
-        //             id: 1,
-        //             author: '447487676471@c.us',
-        //             text: 'Привет, Игорь, как дела?',
-        //         },
-        //         {
-        //             id: 2,
-        //             author: '79528952227@c.us',
-        //             text: 'Привет, все отлично! А у тебя?',
-        //         },
-        //         {
-        //             id: 3,
-        //             author: '447487676471@c.us',
-        //             text: 'У меня тоже все хорошо, спасибо!',
-        //         },
-        //     ],
-        // },
-    ];
+    chats = [];
 
     get currentChat() {
         const currentRecipient = this.rootStore.recipients.currentRecipient;
-
         if (currentRecipient) {
             return this.findChat(currentRecipient.id);
         } else {
@@ -65,31 +32,23 @@ export default class Chat {
     }
 
     updateChats = (data) => {
-        const currentUser = this.rootStore.loginForm.id;
-        // Перебираем сообщения, присланные из Api
         data.forEach((item) => {
-            const {
-                chatId,
-                idMessage,
-                textMessage,
-                senderId = currentUser,
-            } = item;
+            const { chatId, idMessage, textMessage, type } = item;
 
             const chat = this.findChat(chatId);
+            const senderId = this.getSender(type, chatId);
 
             if (chat) {
-                //если нет такого сообщения, то добавляем
-                if (!this.hasMessage(chatId, idMessage)) {
-                    this.addMessage(textMessage, senderId, idMessage, chat);
-                }
+                this.addMessage(type, textMessage, idMessage, chatId);
             } else {
                 //создаем новый чат с этим сообщением
-                const participants = [chatId, senderId];
+                const participants = this.getParticipants(chatId, type);
                 const messages = [
                     {
                         id: idMessage,
                         author: senderId,
                         text: textMessage,
+                        type: type,
                     },
                 ];
                 this.addChat(chatId, participants, messages);
@@ -97,7 +56,6 @@ export default class Chat {
         });
     };
 
-    //chatId = recipientId;
     findChat = (chatId) => {
         return this.chats.find((c) => c.id === chatId);
     };
@@ -122,14 +80,16 @@ export default class Chat {
     };
 
     addMessage = (
+        type,
         textMessage,
-        author,
         idMessage,
         chatId = this.currentChat.id
     ) => {
+        const senderId = this.getSender(type, chatId);
         const newMessage = {
+            type: type,
             id: idMessage,
-            author: author,
+            author: senderId,
             text: textMessage,
         };
 
@@ -137,19 +97,29 @@ export default class Chat {
         if (chat) {
             chat.messages.push(newMessage);
         } else {
-            const participants = this.getParticipants(author, chatId);
+            const participants = this.getParticipants(senderId, chatId);
             this.rootStore.recipients.addRecipient(chatId);
             this.addChat(chatId, participants, [newMessage]);
         }
     };
 
-    getParticipants(author, chatId) {
-        if (author === chatId) {
+    getSender = (type, chatId) => {
+        if (type === 'incoming') {
             //входящее
-            return [author, this.rootStore.loginForm.id];
+            return chatId;
         } else {
             //исходящее
-            return [chatId, author];
+            return this.rootStore.loginForm.id;
+        }
+    };
+
+    getParticipants(senderId, chatId) {
+        if (senderId === chatId) {
+            //входящее
+            return [senderId, this.rootStore.loginForm.id];
+        } else {
+            //исходящее
+            return [chatId, senderId];
         }
     }
 

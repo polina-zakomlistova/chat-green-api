@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { sendMessageApi } from '../../apiServices/SendMessage';
 import { receiveMessage } from '../../apiServices/ReceiveMessage';
@@ -35,19 +35,15 @@ function Chat() {
         if (message) {
             try {
                 const response = await sendMessageApi(
+                    'outgoing',
                     message,
-                    currentRecipient.id,
                     data.idInstance,
                     data.apiTokenInstance
                 );
 
                 if (response) {
-                    addMessage(
-                        message,
-                        userId,
-                        response.idMessage,
-                        response.chatId
-                    );
+                    console.log('1111', response);
+                    addMessage(message, userId, response.idMessage);
                     setMessage('');
                 }
             } catch (error) {
@@ -86,6 +82,8 @@ function Chat() {
             display: 'flex',
             flexDirection: 'column',
             borderLeft: '1px solid #b7b4af',
+            marginTop: 'auto',
+            height: '100%',
         },
         root: {
             '& .MuiTextField-root': {
@@ -98,6 +96,7 @@ function Chat() {
             padding: '5px 5px 5px 10px',
             backgroundColor: '#eae6df',
             border: 'none',
+            marginTop: 'auto',
         },
         input: {
             backgroundColor: '#ffff',
@@ -113,64 +112,72 @@ function Chat() {
             height: '50px',
             marginTop: '0px',
         },
-        chat: {
-            marginTop: 'auto',
+        listChat: {
+            overflow: 'auto',
+            height: 'inherit',
         },
+        listItem: {},
     }));
 
     const classes = useStyles();
 
+    const listRef = useRef(null);
+
+    let messages = currentChat && currentChat.messages;
+
+    // Перемещение скролла вниз при добавлении новых элементов
+    useEffect(() => {
+        listRef.current.scrollTop = listRef.current.scrollHeight;
+    }, [messages]);
+
     return (
         <div className={classes.wrapper}>
             <h2 className="visually-hidden">Chat</h2>
-
             <div className={classes.recipient}>
                 {currentRecipient ? currentRecipient.phone : ''}
             </div>
-            <div className={classes.chat}>
-                <List>
-                    {currentChat ? (
-                        currentChat.messages.map((message) => {
-                            return (
-                                <ListItem key={message.id}>
-                                    <ListItemText
-                                        primary={
-                                            message.author === userId
-                                                ? 'Вы'
-                                                : currentRecipient.name
-                                        }
-                                        secondary={message.text}
-                                        align={
-                                            message.author === userId
-                                                ? 'right'
-                                                : 'left'
-                                        }
-                                    />
-                                </ListItem>
-                            );
-                        })
-                    ) : (
-                        <></>
-                    )}
-                </List>
-                <Paper
-                    component="form"
-                    className={classes.paper}
-                    onSubmit={handleSendMessage}
-                >
-                    <InputBase
-                        multiline
-                        className={classes.input}
-                        placeholder="Введите сообщение"
-                        onChange={handleSendChange}
-                        value={message}
-                        onKeyPress={handleEnterPress}
-                    />
-                    <IconButton type="submit" className={classes.iconButton}>
-                        <SendIcon />
-                    </IconButton>
-                </Paper>
-            </div>
+            <List className={classes.listChat} ref={listRef}>
+                {messages &&
+                    messages.map((message) => {
+                        return (
+                            <ListItem
+                                key={message.id}
+                                className={classes.listItem}
+                            >
+                                <ListItemText
+                                    primary={
+                                        message.type === 'outgoing'
+                                            ? 'Вы'
+                                            : currentRecipient.name
+                                    }
+                                    secondary={message.text}
+                                    align={
+                                        message.type === 'outgoing'
+                                            ? 'right'
+                                            : 'left'
+                                    }
+                                />
+                            </ListItem>
+                        );
+                    })}
+            </List>
+            <Paper
+                component="form"
+                className={classes.paper}
+                onSubmit={handleSendMessage}
+            >
+                <InputBase
+                    multiline
+                    className={classes.input}
+                    placeholder="Введите сообщение"
+                    onChange={handleSendChange}
+                    value={message}
+                    onKeyPress={handleEnterPress}
+                />
+                <IconButton type="submit" className={classes.iconButton}>
+                    <SendIcon />
+                </IconButton>
+            </Paper>
         </div>
     );
 }

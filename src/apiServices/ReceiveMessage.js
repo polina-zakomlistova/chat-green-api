@@ -11,13 +11,13 @@ export const receiveMessage = async (
     const handleMessageReceived = (webhookBody) => {
         const responseData = {
             textMessage: webhookBody.messageData.textMessageData.textMessage,
-            sender: webhookBody.senderData.sender,
             idMessage: webhookBody.idMessage,
             chatId: webhookBody.senderData.chatId,
+            type: 'incoming',
         };
         addMessage(
+            responseData.type,
             responseData.textMessage,
-            responseData.sender,
             responseData.idMessage,
             responseData.chatId
         );

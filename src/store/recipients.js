@@ -1,18 +1,11 @@
 import { makeAutoObservable } from 'mobx';
-
+// {
+//     name: '',
+//     phone: '7777777777',
+//     id: '7777777777@c.us',
+// },
 export default class Recipients {
-    recipients = [
-        // {
-        //     name: '',
-        //     phone: '79138024394',
-        //     id: '79138024394@c.us',
-        // },
-        // {
-        //     name: '',
-        //     phone: '79528952227',
-        //     id: '79528952227@c.us',
-        // },
-    ];
+    recipients = [];
 
     _currentRecipient = null;
 
@@ -37,8 +30,8 @@ export default class Recipients {
         }
     };
 
-    setСurrentRecipient = (phone) => {
-        this._currentRecipient = this.recipients.find((r) => r.phone === phone);
+    setСurrentRecipient = (id) => {
+        this._currentRecipient = this.recipients.find((r) => r.id === id);
     };
 
     get currentRecipient() {

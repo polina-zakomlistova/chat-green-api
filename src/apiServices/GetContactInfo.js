@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-export const getChatHistory = async (chatId, idInstance, apiTokenInstance) => {
-    const url = `https://api.green-api.com/waInstance${idInstance}/getChatHistory/${apiTokenInstance}`;
+export const getContactInfo = async (chatId, idInstance, apiTokenInstance) => {
+    const url = `https://api.green-api.com/waInstance${idInstance}/GetContactInfo/${apiTokenInstance}`;
 
     const data = {
         chatId: chatId,
-        count: 100,
     };
 
     const headers = {
@@ -23,12 +22,10 @@ export const getChatHistory = async (chatId, idInstance, apiTokenInstance) => {
     try {
         const response = await axios.request(config);
         if (response) {
-            const responseData = response.data.map((m) => ({
-                textMessage: m.textMessage,
-                idMessage: m.idMessage,
-                chatId: m.chatId,
-                type: m.type,
-            }));
+            const responseData = {
+                chatId: response.data.chatId,
+                name: response.data.name,
+            };
 
             return responseData;
         }

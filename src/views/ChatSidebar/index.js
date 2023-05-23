@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+import { getRecipients } from '../../apiServices/GetRecipients';
+import { getContacts } from '../../apiServices/getContacts';
+import { getChatHistory } from '../../apiServices/GetChatHistory';
 
 import Styles from './style.module.css';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 //components
-import { List, ListItem, ListItemText } from '@material-ui/core';
-import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
-import IconButton from '@material-ui/core/IconButton';
+import {
+    List,
+    ListItem,
+    ListItemText,
+    Paper,
+    InputBase,
+    IconButton,
+} from '@material-ui/core';
+
 import SearchIcon from '@material-ui/icons/Search';
 import PersonIcon from '@material-ui/icons/Person';
 //context
@@ -17,6 +26,7 @@ import useStore from '../../hooks/useStore';
 const useStyles = makeStyles((theme) => ({
     wrapper: {
         width: '30%',
+        height: '100%',
     },
     root: {
         '& .MuiTextField-root': {
@@ -34,7 +44,6 @@ const useStyles = makeStyles((theme) => ({
     searchWrapper: {
         backgroundColor: '#eae6df',
     },
-
     colorField: {
         backgroundColor: '#eae6df',
     },
@@ -48,6 +57,10 @@ const useStyles = makeStyles((theme) => ({
         backgroundColor: '#eae6df',
         height: '50px',
     },
+    listChat: {
+        overflow: 'auto',
+        height: 'inherit',
+    },
 }));
 
 const CustomPaper = withStyles((theme) => ({
@@ -60,9 +73,15 @@ const CustomPaper = withStyles((theme) => ({
 export default observer(Recipients);
 
 function Recipients() {
-    const [recipientsStore, chatsStore] = useStore('recipients', 'chats');
+    const [recipientsStore, loginFormStore, chatsStore] = useStore(
+        'recipients',
+        'loginForm',
+        'chats'
+    );
     const { recipients, currentRecipient, setСurrentRecipient, addRecipient } =
         recipientsStore;
+    const { data, id: idUser } = loginFormStore;
+    const { updateChats } = chatsStore;
     const classes = useStyles();
 
     const [searchPhone, setSearchPhone] = useState('');
@@ -96,6 +115,59 @@ function Recipients() {
         }
     };
 
+    useEffect(() => {
+        const idInstance = data.idInstance;
+        const apiTokenInstance = data.apiTokenInstance;
+        const resipients = recipients;
+
+        const handleGetInfo = async () => {
+            const handleGetRecipients = async () => {
+                try {
+                    const resipientsApi = await getRecipients(
+                        idInstance,
+                        apiTokenInstance
+                    );
+
+                    const contactsApi = await getContacts(
+                        idInstance,
+                        apiTokenInstance
+                    );
+                    //отбор контактов по тому, с кем уже есть чаты
+                    for (const resipient of resipientsApi) {
+                        const recipientInfo = contactsApi.find(
+                            (c) => c.id === resipient.id
+                        );
+
+                        if (recipientInfo) {
+                            addRecipient(recipientInfo.id, recipientInfo.name);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error get recipients:', error);
+                }
+            };
+
+            const handleGetHistory = async () => {
+                for (const resipient of resipients) {
+                    const recipientChat = await getChatHistory(
+                        resipient.id,
+                        idInstance,
+                        apiTokenInstance
+                    );
+                    if (recipientChat) {
+                        updateChats(recipientChat.reverse());
+                    }
+                }
+            };
+
+            await handleGetRecipients();
+
+            await handleGetHistory();
+        };
+
+        handleGetInfo();
+    }, []);
+
     return (
         <div className={classes.wrapper}>
             <h2 className="visually-hidden">Recipients</h2>
@@ -104,7 +176,6 @@ function Recipients() {
                     <PersonIcon fontSize="large" />
                 </Link>
             </div>
-
             <CustomPaper
                 component="form"
                 className={classes.root}
@@ -124,7 +195,7 @@ function Recipients() {
                     value={searchPhone}
                 />
             </CustomPaper>
-            <List>
+            <List className={classes.listChat}>
                 {recipients.map((item) => (
                     <ListItem
                         key={item.id}
@@ -137,7 +208,7 @@ function Recipients() {
                     >
                         <ListItemText
                             primary={item.name || item.phone}
-                            onClick={() => setСurrentRecipient(item.phone)}
+                            onClick={() => setСurrentRecipient(item.id)}
                         />
                     </ListItem>
                 ))}
